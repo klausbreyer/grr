@@ -1,4 +1,4 @@
-package main
+package grr
 
 import (
 	"bytes"
@@ -17,8 +17,8 @@ func joinHTML(htmls []template.HTML, sep string) template.HTML {
 	return template.HTML(strings.Join(s, sep))
 }
 
-// extendAsMap converts a struct to a map[string]interface{}.
-func extendAsMap(s interface{}) map[string]interface{} {
+// Extend converts a struct to a map[string]interface{}.
+func Extend(s interface{}) map[string]interface{} {
 	v := reflect.ValueOf(s)
 	t := v.Type()
 
@@ -31,9 +31,9 @@ func extendAsMap(s interface{}) map[string]interface{} {
 	return m
 }
 
-// render returns a template.HTML from a template string and data.
+// Render returns a template.HTML from a template string and data.
 // data interface{} so that it can use a map or a struct.
-func render(tmpl string, data interface{}, yield ...template.HTML) template.HTML {
+func Render(tmpl string, data interface{}, yield ...template.HTML) template.HTML {
 	t := template.Must(template.New("").Funcs(template.FuncMap{
 		"yield": func() template.HTML {
 			return joinHTML(yield, "")
@@ -54,9 +54,9 @@ type DataNav struct {
 }
 
 func getNav(data DataNav, yield ...template.HTML) template.HTML {
-	dataMap := extendAsMap(data)
+	dataMap := Extend(data)
 	dataMap["Foot"] = getFoot(DataFoot{Copy: "© 2021"})
-	return render(`
+	return Render(`
 	<nav class="shadow sticky top-0 z-10">
 		{{.Foot}}
 		{{.InputVariable}}
@@ -71,12 +71,12 @@ type DataFoot struct {
 }
 
 func getFoot(data DataFoot, yield ...template.HTML) template.HTML {
-	return render(`
+	return Render(`
 	<footer>
 		{{.Copy}}
 		{{yield}}
 	</footer>
-	`, extendAsMap(data), yield...)
+	`, Extend(data), yield...)
 }
 
 func main() {
