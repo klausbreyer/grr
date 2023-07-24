@@ -53,6 +53,14 @@ type DataNav struct {
 	OtherInput    string
 }
 
+func Flatten(items []template.HTML) template.HTML {
+	var all template.HTML
+	for _, row := range items {
+		all += row
+	}
+	return all
+}
+
 func getNav(data DataNav, yield ...template.HTML) template.HTML {
 	dataMap := Extend(data)
 	dataMap["Foot"] = getFoot(DataFoot{Copy: "© 2021"})
