@@ -38,6 +38,9 @@ func Render(tmpl string, data interface{}, yield ...template.HTML) template.HTML
 		"yield": func() template.HTML {
 			return joinHTML(yield, "")
 		},
+		"add": func(a, b int) int {
+			return a + b
+		},
 	}).Parse(tmpl))
 
 	var buf bytes.Buffer
