@@ -19,6 +19,9 @@ func joinHTML(htmls []template.HTML, sep string) template.HTML {
 
 // Extend converts a struct to a map[string]interface{}.
 func Extend(s interface{}) map[string]interface{} {
+	if s == nil {
+		s = struct{}{}
+	}
 	v := reflect.ValueOf(s)
 	t := v.Type()
 
