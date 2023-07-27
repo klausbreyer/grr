@@ -1,41 +1,11 @@
-package grr
+package main
 
 import (
-	"bytes"
 	"html/template"
 	"log"
-	"strings"
+
+	"github.com/klausbreyer/grr/grr"
 )
-
-// joinHTML joins template.HTMLs with a separator.
-func joinHTML(htmls []template.HTML, sep string) template.HTML {
-	s := make([]string, len(htmls))
-	for i, h := range htmls {
-		s[i] = string(h)
-	}
-	return template.HTML(strings.Join(s, sep))
-}
-
-// Render returns a template.HTML from a template string and data.
-// data interface{} so that it can use a map or a struct.
-func Render(data interface{}, tmpl string) template.HTML {
-	t := template.Must(template.New("").Funcs(template.FuncMap{}).Parse(tmpl))
-
-	var buf bytes.Buffer
-	err := t.Execute(&buf, data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return template.HTML(buf.String())
-}
-
-func Flatten(items []template.HTML) template.HTML {
-	var all template.HTML
-	for _, row := range items {
-		all += row
-	}
-	return all
-}
 
 type DataNav struct {
 	InputVariable string
@@ -45,7 +15,7 @@ type DataNav struct {
 // my favorite. Because it is the most type save and the most readable and it does no hack and
 // i dont like typing "" all the time.
 func getNav(data DataNav) template.HTML {
-	return Render(struct {
+	return grr.Render(struct {
 		Foot          template.HTML
 		InputVariable string
 		OtherInput    string
@@ -68,7 +38,7 @@ type DataFoot struct {
 }
 
 func getFoot(data DataFoot) template.HTML {
-	return Render(struct {
+	return grr.Render(struct {
 		Copy string
 	}{
 		data.Copy,
