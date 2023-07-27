@@ -25,7 +25,7 @@ func getNav(data DataNav) template.HTML {
 		data.OtherInput,
 	},
 		`
-    <nav class="shadow sticky top-0 z-10">
+    <nav class="shadow sticky top-0 z-10"">
         {{.InputVariable}}
         {{.OtherInput}}
 		{{.Foot}}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"runtime"
 	"strings"
 )
 
@@ -25,7 +26,9 @@ func Render(data interface{}, tmpl string) template.HTML {
 	var buf bytes.Buffer
 	err := t.Execute(&buf, data)
 	if err != nil {
-		log.Fatal(fmt.Errorf("error rendering template: %w. Template was: %s", err, tmpl))
+		stack := make([]byte, 1024)
+		length := runtime.Stack(stack, true)
+		log.Fatal(fmt.Errorf("error rendering template: %w. Template was: %s. Stack trace: \n%s", err, tmpl, stack[:length]))
 	}
 	return template.HTML(buf.String())
 }
