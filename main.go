@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"html/template"
 	"log"
-	"reflect"
 	"strings"
 )
 
@@ -15,23 +14,6 @@ func joinHTML(htmls []template.HTML, sep string) template.HTML {
 		s[i] = string(h)
 	}
 	return template.HTML(strings.Join(s, sep))
-}
-
-// Extend converts a struct to a map[string]interface{}.
-func Extend(s interface{}) map[string]interface{} {
-	if s == nil {
-		s = struct{}{}
-	}
-	v := reflect.ValueOf(s)
-	t := v.Type()
-
-	m := make(map[string]interface{})
-	for i := 0; i < t.NumField(); i++ {
-		key := t.Field(i).Name
-		value := v.Field(i).Interface()
-		m[key] = value
-	}
-	return m
 }
 
 // Render returns a template.HTML from a template string and data.
@@ -47,17 +29,17 @@ func Render(data interface{}, tmpl string) template.HTML {
 	return template.HTML(buf.String())
 }
 
-type DataNav struct {
-	InputVariable string
-	OtherInput    string
-}
-
 func Flatten(items []template.HTML) template.HTML {
 	var all template.HTML
 	for _, row := range items {
 		all += row
 	}
 	return all
+}
+
+type DataNav struct {
+	InputVariable string
+	OtherInput    string
 }
 
 // my favorite. Because it is the most type save and the most readable and it does no hack and
