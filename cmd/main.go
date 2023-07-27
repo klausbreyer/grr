@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"log"
 
-	"github.com/klausbreyer/grr/grr"
+	"github.com/klausbreyer/grr"
 )
 
 type DataNav struct {
