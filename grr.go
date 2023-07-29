@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"reflect"
 	"runtime"
 	"strings"
 )
 
-// joinHTML joins template.HTMLs with a separator.
+// joinHTML joins multiple template.HTMLs into a single template.HTML string, separated by a provided separator string.
 func joinHTML(htmls []template.HTML, sep string) template.HTML {
 	s := make([]string, len(htmls))
 	for i, h := range htmls {
@@ -18,9 +19,9 @@ func joinHTML(htmls []template.HTML, sep string) template.HTML {
 	return template.HTML(strings.Join(s, sep))
 }
 
-// Render returns a template.HTML from a template string and data.
-// data interface{} so that it can use a map or a struct.
-func Render(data interface{}, tmpl string) template.HTML {
+// Render takes a template string and a data object, and returns a template.HTML after rendering the template with the provided data.
+// It also handles any error during the rendering process and logs a fatal error with stack trace if any error occurs.
+func Render(tmpl string, data interface{}) template.HTML {
 	t := template.Must(template.New("").Funcs(template.FuncMap{}).Parse(tmpl))
 
 	var buf bytes.Buffer
@@ -33,6 +34,25 @@ func Render(data interface{}, tmpl string) template.HTML {
 	return template.HTML(buf.String())
 }
 
+// Yield takes a template string and a variable number of template.HTML arguments and returns a rendered template.HTML.
+// It provides a "yield" function that can be used within the template to insert the provided arguments.
+func Yield(tmpl string, yield ...template.HTML) template.HTML {
+	t := template.Must(template.New("").Funcs(template.FuncMap{
+		"yield": func() template.HTML {
+			return joinHTML(yield, "")
+		},
+	}).Parse(tmpl))
+	var buf bytes.Buffer
+	err := t.Execute(&buf, nil)
+	if err != nil {
+		stack := make([]byte, 1024)
+		length := runtime.Stack(stack, true)
+		log.Fatal(fmt.Errorf("error rendering template: %w. Template was: %s. Stack trace: \n%s", err, tmpl, stack[:length]))
+	}
+	return template.HTML(buf.String())
+}
+
+// Flatten takes a slice of template.HTML and concatenates them into a single template.HTML.
 func Flatten(items []template.HTML) template.HTML {
 	var all template.HTML
 	for _, row := range items {
@@ -41,53 +61,31 @@ func Flatten(items []template.HTML) template.HTML {
 	return all
 }
 
-type DataNav struct {
-	InputVariable string
-	OtherInput    string
-}
+// Map takes a template string and a slice of any type, and returns a template.HTML after rendering the template with each item of the slice.
+// It converts the slice to a slice of interfaces to handle slices of any type, and panics if the provided object is not a slice.
+func Map(tmpl string, items interface{}) template.HTML {
+	// We need to convert items to []interface{} to iterate over it
+	var itemsInterface []interface{}
 
-// my favorite. Because it is the most type save and the most readable and it does no hack and
-// i dont like typing "" all the time.
-func getNav(data DataNav) template.HTML {
-	return Render(struct {
-		Foot          template.HTML
-		InputVariable string
-		OtherInput    string
-	}{
-		getFoot(DataFoot{Copy: "© 2021"}),
-		data.InputVariable,
-		data.OtherInput,
-	},
-		`
-    <nav class="shadow sticky top-0 z-10">
-        {{.InputVariable}}
-        {{.OtherInput}}
-		{{.Foot}}
-    </nav>
-    `)
-}
+	// Get value of items (which should be a slice)
+	v := reflect.ValueOf(items)
 
-type DataFoot struct {
-	Copy string
-}
-
-func getFoot(data DataFoot) template.HTML {
-	return Render(struct {
-		Copy string
-	}{
-		data.Copy,
-	}, `
-	<footer>
-		{{.Copy}}
-	</footer>
-	`)
-}
-
-func main() {
-	navData := DataNav{
-		InputVariable: "Eingabe 1",
-		OtherInput:    "Eingabe 2",
+	// Check if items is a slice
+	if v.Kind() != reflect.Slice {
+		panic(fmt.Sprintf("Items is not a slice, but a %s", v.Kind()))
 	}
-	html := getNav(navData)
-	log.Println(html)
+
+	// Create slice of interfaces with same length
+	itemsInterface = make([]interface{}, v.Len())
+
+	// Fill slice of interfaces with values from items
+	for i := 0; i < v.Len(); i++ {
+		itemsInterface[i] = v.Index(i).Interface()
+	}
+
+	var all template.HTML
+	for _, row := range itemsInterface {
+		all += Render(tmpl, row)
+	}
+	return all
 }
