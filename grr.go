@@ -89,3 +89,38 @@ func Map(tmpl string, items interface{}) template.HTML {
 	}
 	return all
 }
+
+// Struct is a utility function that prints the type, field names, field types,
+// and field values of any struct passed to it. The function uses the reflect package
+// to examine the structure of the interface{} argument at runtime.
+//
+// Parameters:
+// v: An interface{} value representing the struct to be printed.
+//
+// Output:
+// The function prints the type of the struct, and for each field in the struct,
+// it prints the field name, field type, and field value.
+//
+// Note:
+// This function will not correctly display private fields or handle nested/embedded
+// structs in the way you might expect. The reflect package has some limitations and
+// should be used with care.
+func Struct(v interface{}) {
+	// Use reflection to get value and type of the interface
+	val := reflect.ValueOf(v)
+
+	// Print the type of the struct
+	fmt.Printf("Type: %s\n", val.Type())
+
+	// Loop over each field of the struct
+	for i := 0; i < val.Type().NumField(); i++ {
+		// Get the i-th field's value and type
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+
+		// Print field name, field type, and field value
+		fmt.Printf("%s (%s): %v\n", typeField.Name, typeField.Type, valueField.Interface())
+	}
+	// Print a newline for readability
+	fmt.Println()
+}
