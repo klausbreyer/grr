@@ -7,20 +7,23 @@ import (
 	"github.com/klausbreyer/grr"
 )
 
-func getHtml() template.HTML {
-	navData := DataNav{
-		InputVariable: "Input Var 1",
-		OtherInput:    "Input Var 2",
-	}
-	nav := getNav(navData)
-	foot := getFoot(DataFoot{Copy: "© 2021"})
-
-	main := getMain([]SectionData{
-		{Title: "Section 1"},
-		{Title: "Section 2"},
-		{Title: "Section 3"},
+// GetHTML generates the main HTML structure
+func GetHTML() template.HTML {
+	// Define main sections
+	main := GetMain([]SectionData{
+		{Title: "Welcome", Content: "Welcome to our website!"},
+		{Title: "About", Content: "We are a company that does amazing things."},
+		{Title: "Contact", Content: "Please reach out to us through the contact form."},
 	})
 
+	// Define footer data
+	footData := DataFoot{Copy: "© 2023"}
+
+	// Generate HTML for each part
+	nav := GetNav()
+	foot := GetFoot(footData)
+
+	// Assemble parts into final HTML
 	return grr.Yield(`
 	<html>
 		<head>
@@ -33,58 +36,59 @@ func getHtml() template.HTML {
 	`, nav, main, foot)
 }
 
-type DataNav struct {
-	InputVariable string
-	OtherInput    string
+// Link represents a link in the navigation
+type Link struct {
+	Label string
+	URL   string
 }
 
-func getNav(data DataNav) template.HTML {
-	return grr.Render(`
-    <nav class="shadow sticky top-0 z-10">
-        {{.InputVariable}}
-        {{.OtherInput}}
-		{{.Foot}}
+// GetNav generates the HTML for the navigation
+func GetNav() template.HTML {
+	// Define navigation data
+	navData := []Link{
+		{Label: "Home", URL: "/"},
+		{Label: "About", URL: "/about"},
+		{Label: "Contact", URL: "/contact"},
+	}
+
+	return grr.Map(`
+    <nav>
+		<a href="{{.URL}}">{{.Label}}</a>
     </nav>
-    `, struct {
-		Foot          template.HTML
-		InputVariable string
-		OtherInput    string
-	}{
-		getFoot(DataFoot{Copy: "© 2021"}),
-		data.InputVariable,
-		data.OtherInput,
-	})
+    `, navData)
 }
 
+// SectionData represents the data for a section
 type SectionData struct {
-	Title string
+	Title   string
+	Content string
 }
 
-func getMain(data []SectionData) template.HTML {
+// GetMain generates the HTML for the main content
+func GetMain(data []SectionData) template.HTML {
 	return grr.Map(`
     <section>
         <h2>{{.Title}}</h2>
+		<p>{{.Content}}</p>
     </section>
     `, data)
 }
 
+// DataFoot represents the data for the footer
 type DataFoot struct {
 	Copy string
 }
 
-func getFoot(data DataFoot) template.HTML {
+// GetFoot generates the HTML for the footer
+func GetFoot(data DataFoot) template.HTML {
 	return grr.Render(`
 	<footer>
 		{{.Copy}}
 	</footer>
-	`, struct {
-		Copy string
-	}{
-		data.Copy,
-	})
+	`, data)
 }
 
 func main() {
-	html := getHtml()
+	html := GetHTML()
 	log.Println(html)
 }
