@@ -24,7 +24,7 @@ func getHtml() template.HTML {
 	return grr.Yield(`
 	<html>
 		<head>
-			<title>all-the-highlights</title>
+			<title>grr-example</title>
 		</head>
 		<body>
 		{{yield}}
