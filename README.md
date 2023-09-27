@@ -1,4 +1,3 @@
-
 # 🧛grr: Go Reactish Rendering
 
 ## Embed HTML directly in pure Go functions. Fewer Typos, More Types!
@@ -109,6 +108,95 @@ The `Yield()` function empowers you to render a specific part of a template. It'
 fmt.Println(grr.Yield(`<body>{{yield}}</body>`, renderOutput, "Family: ", mapOutput))
 
 // Output: <body><h1>Hello, John!</h1><p>John</p><p>Jane</p></body>
+```
+
+### Building a Web Page with grr
+
+Using `grr`, you can create and combine different parts of a web page. Here's a simple example that demonstrates how to build a web page with a navigation, main content, and footer:
+
+```go
+// Data structure for navigation links
+type Link struct {
+    Label string
+    URL   string
+}
+
+// Generate the navigation bar
+func GetNav() template.HTML {
+    // Define navigation data
+    navData := []Link{
+        {Label: "Home", URL: "/"},
+        {Label: "About", URL: "/about"},
+        {Label: "Contact", URL: "/contact"},
+    }
+    return grr.Map(`
+    <nav>
+        <a href="{{.URL}}">{{.Label}}</a>
+    </nav>
+    `, navData)
+}
+
+// Data structure for main content sections
+type SectionData struct {
+    Title   string
+    Content string
+}
+
+// Generate the main content
+func GetMain(data []SectionData) template.HTML {
+    return grr.Map(`
+    <section>
+        <h2>{{.Title}}</h2>
+        <p>{{.Content}}</p>
+    </section>
+    `, data)
+}
+
+// Data structure for footer content
+type DataFoot struct {
+    Copy string
+}
+
+// Generate the footer
+func GetFoot(data DataFoot) template.HTML {
+    return grr.Render(`
+    <footer>
+        {{.Copy}}
+    </footer>
+    `, data)
+}
+
+// Assemble everything into a complete HTML page
+func GetHTML() template.HTML {
+    // Define main sections
+    main := GetMain([]SectionData{
+        {Title: "Welcome", Content: "Welcome to our website!"},
+        {Title: "About", Content: "We are a company that does amazing things."},
+        {Title: "Contact", Content: "Please reach out to us through the contact form."},
+    })
+    // Define footer data
+    footData := DataFoot{Copy: "© 2023"}
+    // Generate HTML for each part
+    nav := GetNav()
+    foot := GetFoot(footData)
+    // Assemble parts into final HTML
+    return grr.Yield(`
+    <html>
+        <head>
+            <title>grr-example</title>
+        </head>
+        <body>
+        {{yield}}
+        </body>
+    </html>
+    `, nav, main, foot)
+}
+
+func main() {
+    html := GetHTML()
+    log.Println(html)
+}
+
 ```
 
 For a deeper dive into usage scenarios, please refer to the examples in the 'example' folder. You can find them [here](https://github.com/klausbreyer/grr/tree/main/example).
