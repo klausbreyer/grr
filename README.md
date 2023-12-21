@@ -105,7 +105,17 @@ fmt.Println(mapOutput)
 The `Yield()` function empowers you to render a specific part of a template. It's ideal for rendering several HTML elements in sequence. Here's a basic example:
 
 ```go
-fmt.Println(grr.Yield(`<body>{{yield}}</body>`, renderOutput, "Family: ", mapOutput))
+bodyTemplate := `<body>{{yield}}</body>`
+helloTemplate := `<h1>Hello, {{.Name}}!</h1>`
+personListTemplate := `<p>{{.Name}}</p>`
+
+// Render individual components
+renderedHello := grr.Render(helloTemplate, Person{Name: "John"})
+renderedPersonList := grr.Map(personListTemplate, []Person{{Name: "John"}, {Name: "Jane"}})
+
+// Combine components in bodyTemplate using Yield
+combinedOutput := grr.Yield(bodyTemplate, renderedHello, renderedPersonList)
+fmt.Println(combinedOutput)
 
 // Output: <body><h1>Hello, John!</h1><p>John</p><p>Jane</p></body>
 ```
